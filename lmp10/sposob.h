@@ -1,0 +1,1 @@
+int spr(int x, double **tab);

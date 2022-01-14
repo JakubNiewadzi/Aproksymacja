@@ -1,0 +1,1 @@
+void wypisz(double **tab, double *wynik, int x);
