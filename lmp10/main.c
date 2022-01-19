@@ -100,7 +100,7 @@ main (int argc, char **argv)
       exit (EXIT_FAILURE);
     }
 
-    make_spl (&pts, &spl);
+    make_spl(&pts, &spl);
 
     if( spl.n > 0 )
 			write_spl (&spl, ouf);

@@ -1,3 +1,3 @@
 
 
-double * gauss(int n,matrix_t * rownania, matrix_t * wartosci);
+double * gauss(int n,matrix_nasz * rownania, matrix_nasz * wartosci, double * dzialaj);

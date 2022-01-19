@@ -1,5 +1,5 @@
 #include "makespl.h"
-//#include "gaus/matrix.h"
+#include "matrix.h"
 #include "gaus/piv_ge_solver.h"
 
 #include <stdio.h>
@@ -212,7 +212,7 @@ make_spl(points_t * pts, spline_t * spl)
 			}
 		}
 	}
-
+  //free_matrix(eqs);
 #ifdef DEBUG
 	{
 		FILE           *tst = fopen("debug_spline_plot.txt", "w");
@@ -234,5 +234,5 @@ make_spl(points_t * pts, spline_t * spl)
 		fclose(tst);
 	}
 #endif
-
+  
 }

@@ -1,25 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-//#define BUFSIZE 8192
+
 
 #include "gaus/piv_ge_solver.h"
 #include "wypisz.h"
 #include "zamiana.h"
 #include "sposob.h"
 
-double * gauss(int n,matrix_t * rownania, matrix_t * wartosci) //rownania to DtD a wartosci to DtF n to glebokosc
+double * gauss(int n,matrix_nasz * rownania, matrix_nasz * wartosci, double * dzialaj) //rownania to DtD a wartosci to DtF n to glebokosc
 {
     int error=0;
 
-    
-   /* 
-    FILE *in= argc > 1 ? fopen( argv[1], "r" ) : stdin;
-    if(fscanf(in, "%d\n", &x)!=1){
-      fprintf(stderr, "Ups! Podano błędny format danych!");
-      return 1;
-    }
-  */
 
 
     double **tab;
@@ -48,10 +40,6 @@ double * gauss(int n,matrix_t * rownania, matrix_t * wartosci) //rownania to DtD
     }
 
 
-    // ZAMIANA -----------------------------------------
-
-   //wypisz(tab, wynik, n);
-  
 
   int pom=n-1;
   double przezco;
@@ -92,7 +80,7 @@ double * gauss(int n,matrix_t * rownania, matrix_t * wartosci) //rownania to DtD
   {
     printf("x%d: %lf\n",zmienione[i]+1, zmienne[i]);
   }
-  double* dzialaj=malloc(sizeof(double)*n);
+  
   for (int i=0;i<n;i++)
   {
     dzialaj[zmienione[i]]=zmienne[i];
@@ -103,6 +91,17 @@ for (int i = 0; i < n; i++ )
   {
     printf("x%d: %lf\n",i+1, dzialaj[i]);
   }
+
+  free(zmienne);
+  free(wynik);
+  free(zmienione);
+  
+  /*for (int i = 0; i < n; i++ )
+    {
+        free(tab[i]);
+    }
+    */ 
+  //free(tab);
 
   return dzialaj;
 

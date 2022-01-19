@@ -7,6 +7,12 @@ typedef struct {
 	int rn;//liczba wierszy?
   int cn;//liczba kolumn?
   double **e;
+} matrix_nasz;
+
+typedef struct {
+	int rn;//liczba wierszy?
+  int cn;//liczba kolumn?
+  double *e;
 } matrix_t;
 
 matrix_t * make_matrix( int rn, int cn );

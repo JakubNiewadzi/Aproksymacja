@@ -2,6 +2,7 @@
 #include "gaus/piv_ge_solver.h"
 #include "gauss.h"
 
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +10,8 @@
 
 
 
-double makeHermite(double x, int n){     //tworzy funkcje do bazy
+double makeHermite (double x, int n)  //tworzy funkcje do bazy
+{    
   if(n==0){
     return 1;
   }else if(n==1){
@@ -29,16 +31,8 @@ double makeHermite(double x, int n){     //tworzy funkcje do bazy
   }
 }
 
-matrix_t * multiplication(int m, int o, int n, matrix_t * tab1, matrix_t * tab2){
-  int ile;
-  matrix_t * tab3=make_matrix(n, n);
-
-  tab3->e=malloc(n*sizeof(double*));
-  for(int i=0;i<n;i++){
-    tab3->e[i]=malloc(n*sizeof(double));
-  }
-
-
+void multiplication(int m, int o, int n, matrix_nasz * tab1, matrix_nasz * tab2, matrix_nasz * nowy){
+  double ile;
   for (int i=0;i<m;i++)   // m to wysokość(ilość wierszy) pierwszej tablicy
     {
     for(int j=0;j<o;j++)  // o to szerokość(ilość kolumn) drugiej tablicy
@@ -48,74 +42,36 @@ matrix_t * multiplication(int m, int o, int n, matrix_t * tab1, matrix_t * tab2)
     {
         ile+=tab1->e[i][k]*tab2->e[k][j];  
     }
-      tab3->e[i][j]=ile; //tab3 to tablica z wynikiem
+      nowy->e[i][j]=ile; //tab3 to tablica z wynikiem
   }
 }
-  return tab3;
 }
 
 
-
-
-
-
-/*double f(hermite hermite, double x){  //
-  double k=0;
-  for(int i=0;i<hermite.nwsp;i++){
-    k+=hermite.wsp[i]*makeHermite(x, i);
+void our_make(points_t* pts, char* out, double fromX, double toX, int n) {
+  //matrix_nasz D=make_matrix(,x = pts->x);
+  FILE *fp;
+  if(out !=NULL){
+    fp = fopen(out, "w");
+  }else{
+    fp = fopen("wyjscie.txt", "w");
   }
-  printf("%lf\n", k);
-  return k;
-}
-
-double df(hermite hermite, double x, int level){
-  double k=0;
-  int m=1;
-  int n=1;
-  for(int i=0;i<hermite.nwsp;i++){
-    m=1;
-    n=1;
-    if(i<2){
-      m=1;
-      n=1;
-    }else if (i-level<2){
-      for(int j=1;j<i;j++){
-        n*=j+1;
-      }
-      m=1;
-    }else{
-      for(int j=1;j<i;j++){
-        n*=j+1;
-      }
-      for(int j=1;j<i-level;j++){
-        m*=j+1;
-      }
-    }
-    k+=2*(n/m)*hermite.wsp[i]*makeHermite(x, i-level);
-  }
-  printf("pochodna: %lf\n", k);
-  return k;
-}*/
-
-
-void make_spl(points_t* pts, spline_t* spl) {
-  //matrix_t D=make_matrix(,x = pts->x);
-  
-  matrix_t       *D= NULL;
-  matrix_t *Dt;
+  matrix_nasz *D= NULL;
+  matrix_nasz *Dt;
   double *A;
 	double         *x = pts->x;
 	double         *y = pts->y;
 	double		a = x[0];
 	double		b = x[pts->n - 1];
   int		i, j, k;
-	int		nb = pts->n - 3 > 10 ? 10 : pts->n - 3;
+	int		nb = pts->n - 3 > 9 ? 9 : pts->n - 3;
   char *nbEnv= getenv( "APPROX_BASE_SIZE" );
 
 	if( nbEnv != NULL && atoi( nbEnv ) > 0 )
 		nb = atoi( nbEnv );
 
-	D = make_matrix(pts->n, nb);
+	//D = make_matrix(pts->n, nb); ------------------------------------------------
+  D=malloc(sizeof(*D));
   D->e=malloc(pts->n*sizeof(double*));
   for(int i=0;i<pts->n;i++){
     D->e[i]=malloc(nb*sizeof(double));
@@ -127,13 +83,13 @@ void make_spl(points_t* pts, spline_t* spl) {
       D->e[i][j]=makeHermite(x[i],j);
       //printf("%lf ",D->e[i][j] );
     }
-    printf("\n");
+    //printf("\n");
   }
-  
+  //printf("HERMIT TU %lf \n",makeHermite(150,2));
   
   A=malloc(nb*sizeof(double));
-  matrix_t * F=make_matrix(pts->n, 1);
-  Dt = make_matrix(nb,pts->n);
+  matrix_nasz * F=malloc(sizeof (*F));
+  Dt = malloc(sizeof(*Dt));
   Dt->e=malloc(nb*sizeof(double*));
   for(int i=0;i<nb;i++){
     Dt->e[i]=malloc(pts->n*sizeof(double));
@@ -148,12 +104,12 @@ void make_spl(points_t* pts, spline_t* spl) {
     //printf("\n");
   }
   //printf("\n\n");
-  matrix_t * DtD=make_matrix(nb, nb);
+  matrix_nasz * DtD=malloc(sizeof *DtD);
   DtD->e=malloc(nb*sizeof(double*));
   for(int i=0;i<nb;i++){
     DtD->e[i]=malloc(nb*sizeof(double));
   }
-  DtD=multiplication(nb, nb, pts->n, Dt, D );
+  multiplication(nb, nb, pts->n, Dt, D , DtD);
   for(int i=0;i<nb;i++){
     for(int j=0;j<nb;j++){
       //printf("%.2lf ", DtD->e[i][j]);
@@ -168,113 +124,125 @@ void make_spl(points_t* pts, spline_t* spl) {
     F->e[i][0]=pts->y[i];
   }
   
-  matrix_t * DtF=make_matrix(nb, 1);
+  matrix_nasz * DtF=malloc(sizeof (*DtF));
   DtF->e=malloc(nb*sizeof(double*));
   for(int i=0;i<nb;i++){
     DtF->e[i]=malloc(sizeof(double));
   }
-  DtF=multiplication(nb, 1,  pts->n, Dt, F );
+  multiplication(nb, 1,  pts->n, Dt, F ,DtF);
 
   for(int i=0;i<nb;i++){
     for(int j=0;j<1;j++){
-      printf("%.2lf ", DtF->e[i][j]);
+     // printf("%.2lf ", DtF->e[i][j]);
     }
-    printf("\n");
+   // printf("\n");
   }
   double *wsp = malloc(nb*sizeof(double));
-  wsp = gauss(nb, DtD, DtF);
+  wsp=gauss(nb, DtD, DtF, wsp);
 
-
+  //for (int i=0;i<nb;i++)
+    //printf("%lf ",wsp[i]);
+  //printf("\n");
   double wart=0;
-  for (int j=0;j<pts->n;j++)
+  //printf("wartosci1:\n");
+  for (int j=0;j<pts->n;j++) //dla każdego x'a
   {
-    for (int i=0;i<nb;i++)
+    for (int i=0;i<nb;i++)  //dla każdej wartości hermita
     {
-    wart+=wsp[i]*makeHermite(pts->x[j],i);
+      //printf("%lf razy %lf", wsp[i], makeHermite(pts->x[j], i));
+    wart+=wsp[nb-i-1]*makeHermite(pts->x[j],i);
     }
-    printf("%lf \n",wart);
+    printf("dla x=%lf",pts->x[j]);
+    printf(" dostajemy %lf a powinnismy %lf \n",wart,pts->y[j]);
+    
     wart=0;
   }
-  // WAŻNE!!!!!!!!!!!!!
-/*
-  //Mnożenie macierzy
-  //Chcemy to zrobić w funkcji czy oddzielnie dla każdego?
-int ile;
-for (int i=0;i<m;i++)   // m to wysokość(ilość wierszy) pierwszej tablicy
-{
-  for(int j=0;j<o;j++)  // o to szerokość(ilość kolumn) drugiej tablicy
+  double start;
+  double koniec;
+  double skok;
+  int max;
+  if(fromX!=0){
+    start=fromX;
+  }else
   {
-    ile=0;
-    for(int k=0;k<n;k++)  // n to wysokość drugiej i szerokość pierwszej tablicy
+    start=pts->x[0];
+  }
+  if(toX!=0){
+    koniec=toX;
+  }else
+  {
+    koniec=pts->x[pts->n-1];
+  }
+  if(n>1){
+    skok=(koniec-start)/(n-1);
+    max=n;
+  }else
+  {
+    skok=(koniec-start)/(10000-1);
+    max = 10000;
+  }
+  printf("%s %lf, %lf, %d, %lf", out, start, koniec, n, skok);
+  for(int j=0;j<max;j++)
+  {
+    for (int i=0;i<nb+2;i++)  //dla każdej wartości hermita
     {
-      ile+=tab1[i][k]*tab2[k][j]  
+      //printf("%lf razy %lf", wsp[i], makeHermite(pts->x[j], i));
+    wart+=wsp[nb-i-1]*makeHermite(start+skok*j,i);
     }
-    tab3[i][j]=ile; //tab3 to tablica z wynikiem
+   fprintf( fp, "%lf %lf\n", start+skok*j, wart);
+   wart=0;
   }
-}
-*/
-//Do zrobienia: Dt * D * A = Dt * f, w sumie 2 mnożenia i rozwiązanie Gaussa
-
-  
-  
-  
-  
-/*
-eqs = make_matrix(nb, nb + 1);
-	if (piv_ge_solver(eqs)) {
-		spl->n = 0;
-		return;
-	}
-
-  hermite hermite;
-  hermite.nwsp=nb;  //liczba wspolczynnikow
-  hermite.wsp=malloc(sizeof(double) * nb);
-  hermite.a=a;      //poczatek zakresu
-  hermite.b=b;      //koniec zakresu
-
-  
-  for (j = 0; j < nb; j++) {
-	  for (i = 0; i < nb; i++)
-		  for (k = 0; k < pts->n; k++)
-			  add_to_entry_matrix(eqs, j, i, f(hermite, x[k])*f(hermite, x[k]));
-        printf("%lf\n", eqs->e[k]);
-
-	  for (k = 0; k < pts->n; k++)
-			add_to_entry_matrix(eqs, j, nb, y[k]*f(hermite, x[k]));
-	}
-  
-
-  if (alloc_spl(spl, nb) == 0) {
-		for (i = 0; i < spl->n; i++) {
-			double xx = spl->x[i] = a + i*(b-a)/(spl->n-1);
-			xx+= 10.0*DBL_EPSILON;  // zabezpieczenie przed ulokowaniem punktu w poprzednim przedziale
-			spl->f[i] = 0;
-			spl->f1[i] = 0;
-			spl->f2[i] = 0;
-			spl->f3[i] = 0;
-			for (k = 0; k < nb; k++) {
-				double		ck = get_entry_matrix(eqs, k, nb);
-				spl->f[i]  += ck * f  (hermite, xx);
-				spl->f1[i] += ck * df (hermite, xx, 1);
-				spl->f2[i] += ck * df (hermite, xx, 2);
-				spl->f3[i] += ck * df (hermite, xx, 3);
-			}
-		}
-	}*/
-  double a1=2;
-  long double b1=2;
-  for (int i=0;i<10;i++)
-  {
-    a1=a1*a1;
-    b1=b1*b1;
-    printf("%lf vs %Lf \n",a1,b1);
+  for (int j=0;j<pts->n;j++) //dla każdego x'a
+    {
+      for (int i=0;i<nb;i++)  //dla każdej wartości hermita
+      {
+        //printf("%lf razy %lf", wsp[i], makeHermite(pts->x[j], i));
+      wart+=wsp[nb-i-1]*makeHermite(pts->x[j],i);
+      }
+      //printf("dla x=%lf",pts->x[j]);
+      //printf(" dostajemy %lf a powinnismy %lf \n",wart,pts->y[j]);
+      
+      wart=0;
+    }
+    
+  fclose(fp);
+  /*
+  for(int i=0;i<pts->n;i++){ 
+    free(D->e[i]);
   }
+  free(D->e);
+  free(D);
+  
+  for(int i=0;i<nb;i++){
+    free(DtD->e[i]);
+  }
+  free(DtD->e);
+  free(DtD);
+  
 
+  for(int i=0;i<nb;i++){
+    free(DtF->e[i]);
+  }
+  free(DtF->e);
+  free(DtF);
+  
+  
+  free(wsp);
+  
 
+  for(int i=0;i<pts->n;i++){
+    free(F->e[i]);
+  }
+  free(F->e);
+  free(F);
 
+  free(A);                
 
-
-
-
-
-}
+  for(int i=0;i<nb;i++){
+    free(Dt->e[i]);
+  }
+ 
+  free(Dt->e);
+  free(Dt);
+  */
+  }
